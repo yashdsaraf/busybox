@@ -190,17 +190,29 @@ int FAST_FUNC bbunpack(char **argv,
 	return exitcode;
 }
 
-#if ENABLE_UNCOMPRESS || ENABLE_BUNZIP2 || ENABLE_UNLZMA || ENABLE_UNXZ
+#if ENABLE_UNCOMPRESS || ENABLE_BUNZIP2 || ENABLE_LUNZIP || ENABLE_UNLZMA || ENABLE_UNXZ
 static
 char* FAST_FUNC make_new_name_generic(char *filename, const char *expected_ext)
 {
 	char *extension = strrchr(filename, '.');
-	if (!extension || strcmp(extension + 1, expected_ext) != 0) {
+
+	if (!extension)
+		return NULL;
+
+	if (strcmp(extension + 1, expected_ext) == 0) {
+		*extension = '\0';
+	} else if (extension[1] == 't' && strlen(expected_ext) >= 2 &&
+			strcmp(extension + 2, expected_ext) == 0) {
+		filename = xstrdup(filename);
+		extension = strrchr(filename, '.');
+		extension[2] = 'a';
+		extension[3] = 'r';
+		extension[4] = '\0';
+	} else {
 		/* Mimic GNU gunzip - "real" bunzip2 tries to */
 		/* unpack file anyway, to file.out */
 		return NULL;
 	}
-	*extension = '\0';
 	return filename;
 }
 #endif
@@ -396,6 +408,36 @@ int bunzip2_main(int argc UNUSED_PARAM, char **argv)
 		option_mask32 |= OPT_STDOUT;
 
 	return bbunpack(argv, unpack_bz2_stream, make_new_name_generic, "bz2");
+}
+#endif
+
+
+//config:config LUNZIP
+//config:	bool "lunzip"
+//config:	default y
+//config:	help
+//config:	  lunzip is used to decompress archives created by lzip.
+//config:	  You can use the `-t' option to test the integrity of
+//config:	  an archive, without decompressing it.
+
+//applet:IF_LUNZIP(APPLET(lunzip, BB_DIR_USR_BIN, BB_SUID_DROP))
+//kbuild:lib-$(CONFIG_LUNZIP) += bbunzip.o
+
+//usage:#define lunzip_trivial_usage
+//usage:       "[-cft] [FILE]..."
+//usage:#define lunzip_full_usage "\n\n"
+//usage:       "Decompress FILEs (or stdin)\n"
+//usage:     "\n	-c	Write to stdout"
+//usage:     "\n	-f	Force"
+//usage:     "\n	-t	Test file integrity"
+#if ENABLE_LUNZIP
+int lunzip_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int lunzip_main(int argc UNUSED_PARAM, char **argv)
+{
+	getopt32(argv, "cfvqdt");
+	argv += optind;
+
+	return bbunpack(argv, unpack_lz_stream, make_new_name_generic, "lz");
 }
 #endif
 

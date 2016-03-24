@@ -133,6 +133,11 @@ static int show_manpage(const char *pager, char *man_filename, int man, int leve
 	if (run_pipe(pager, filename_with_zext, man, level))
 		return 1;
 #endif
+#if ENABLE_FEATURE_SEAMLESS_LZ
+	strcpy(ext, "lz");
+	if (run_pipe(pager, filename_with_zext, man, level))
+		return 1;
+#endif
 #if ENABLE_FEATURE_SEAMLESS_BZ2
 	strcpy(ext, "bz2");
 	if (run_pipe(pager, filename_with_zext, man, level))
