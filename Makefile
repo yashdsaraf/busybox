@@ -1,8 +1,8 @@
 VERSION = 1
 PATCHLEVEL = 26
 SUBLEVEL = 0
-EXTRAVERSION =
-NAME = Unnamed
+EXTRAVERSION = .YDS
+NAME = Rorschack
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"

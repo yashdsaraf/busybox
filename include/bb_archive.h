@@ -9,6 +9,8 @@ enum {
 	COMPRESS_MAGIC = 0x1f9d,
 	GZIP_MAGIC  = 0x1f8b,
 	BZIP2_MAGIC = 256 * 'B' + 'Z',
+	LZIP_MAGIC1 = 0x4C5A,
+	LZIP_MAGIC2 = 0x4950,
 	/* .xz signature: 0xfd, '7', 'z', 'X', 'Z', 0x00 */
 	/* More info at: http://tukaani.org/xz/xz-file-format.txt */
 	XZ_MAGIC1   = 256 * 0xfd + '7',
@@ -21,6 +23,8 @@ enum {
 	COMPRESS_MAGIC = 0x9d1f,
 	GZIP_MAGIC  = 0x8b1f,
 	BZIP2_MAGIC = 'B' + 'Z' * 256,
+	LZIP_MAGIC1 = 0x5A4C,
+	LZIP_MAGIC2 = 0x5049,
 	XZ_MAGIC1   = 0xfd + '7' * 256,
 	XZ_MAGIC2   = 'z' + ('X' + ('Z' + 0 * 256) * 256) * 256,
 	XZ_MAGIC1a  = 0xfd + ('7' + ('z' + 'X' * 256) * 256) * 256,
@@ -189,6 +193,7 @@ char get_header_cpio(archive_handle_t *archive_handle) FAST_FUNC;
 char get_header_tar(archive_handle_t *archive_handle) FAST_FUNC;
 char get_header_tar_gz(archive_handle_t *archive_handle) FAST_FUNC;
 char get_header_tar_bz2(archive_handle_t *archive_handle) FAST_FUNC;
+char get_header_tar_lz(archive_handle_t *archive_handle) FAST_FUNC;
 char get_header_tar_lzma(archive_handle_t *archive_handle) FAST_FUNC;
 char get_header_tar_xz(archive_handle_t *archive_handle) FAST_FUNC;
 
@@ -239,6 +244,7 @@ IF_DESKTOP(long long) int inflate_unzip(transformer_state_t *xstate) FAST_FUNC;
 IF_DESKTOP(long long) int unpack_Z_stream(transformer_state_t *xstate) FAST_FUNC;
 IF_DESKTOP(long long) int unpack_gz_stream(transformer_state_t *xstate) FAST_FUNC;
 IF_DESKTOP(long long) int unpack_bz2_stream(transformer_state_t *xstate) FAST_FUNC;
+IF_DESKTOP(long long) int unpack_lz_stream(transformer_state_t *xstate) FAST_FUNC;
 IF_DESKTOP(long long) int unpack_lzma_stream(transformer_state_t *xstate) FAST_FUNC;
 IF_DESKTOP(long long) int unpack_xz_stream(transformer_state_t *xstate) FAST_FUNC;
 

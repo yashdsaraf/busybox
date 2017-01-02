@@ -44,6 +44,12 @@ char FAST_FUNC filter_accept_list_reassign(archive_handle_t *archive_handle)
 			archive_handle->dpkg__action_data_subarchive = get_header_tar_bz2;
 			return EXIT_SUCCESS;
 		}
+		if (ENABLE_FEATURE_SEAMLESS_LZ
+		 && strcmp(name_ptr, "lz") == 0
+		) {
+			archive_handle->dpkg__action_data_subarchive = get_header_tar_lz;
+			return EXIT_SUCCESS;
+		}
 		if (ENABLE_FEATURE_SEAMLESS_LZMA
 		 && strcmp(name_ptr, "lzma") == 0
 		) {

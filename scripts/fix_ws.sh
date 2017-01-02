@@ -19,6 +19,7 @@ find "$@" -type f \
 | while read name; do
     test "YES" = "${name/*.bz2/YES}" && continue
     test "YES" = "${name/*.gz/YES}" && continue
+    test "YES" = "${name/*.lz/YES}" && continue
     test "YES" = "${name/*.png/YES}" && continue
     test "YES" = "${name/*.gif/YES}" && continue
     test "YES" = "${name/*.jpg/YES}" && continue

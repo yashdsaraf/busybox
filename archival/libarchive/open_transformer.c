@@ -195,6 +195,17 @@ static transformer_state_t *setup_transformer_on_fd(int fd, int fail_if_not_comp
 		USE_FOR_NOMMU(xstate->xformer_prog = "bunzip2";)
 		goto found_magic;
 	}
+	if (ENABLE_FEATURE_SEAMLESS_LZ
+	 && magic.b16[0] == LZIP_MAGIC1
+	) {
+		xstate->signature_skipped = 4;
+		xread(fd, magic.b16, sizeof(magic.b16[0]));
+		if (magic.b16[0] == LZIP_MAGIC2) {
+			xstate->xformer = unpack_lz_stream;
+			USE_FOR_NOMMU(xstate->xformer_prog = "lunzip";)
+			goto found_magic;
+		}
+	}
 	if (ENABLE_FEATURE_SEAMLESS_XZ
 	 && magic.b16[0] == XZ_MAGIC1
 	) {
@@ -211,6 +222,7 @@ static transformer_state_t *setup_transformer_on_fd(int fd, int fail_if_not_comp
 	if (fail_if_not_compressed)
 		bb_error_msg_and_die("no gzip"
 			IF_FEATURE_SEAMLESS_BZ2("/bzip2")
+			IF_FEATURE_SEAMLESS_LZ("/lzip")
 			IF_FEATURE_SEAMLESS_XZ("/xz")
 			" magic");
 

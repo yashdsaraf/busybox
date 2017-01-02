@@ -70,6 +70,10 @@ int dpkg_deb_main(int argc UNUSED_PARAM, char **argv)
 	llist_add_to(&ar_archive->accept, (char*)"data.tar.bz2");
 	llist_add_to(&control_tar_llist, (char*)"control.tar.bz2");
 #endif
+#if ENABLE_FEATURE_SEAMLESS_LZ
+	llist_add_to(&ar_archive->accept, (char*)"data.tar.lz");
+	llist_add_to(&control_tar_llist, (char*)"control.tar.lz");
+#endif
 #if ENABLE_FEATURE_SEAMLESS_LZMA
 	llist_add_to(&ar_archive->accept, (char*)"data.tar.lzma");
 	llist_add_to(&control_tar_llist, (char*)"control.tar.lzma");

@@ -806,12 +806,13 @@ unsigned bb_clk_tck(void) FAST_FUNC;
 #define SEAMLESS_COMPRESSION (0 \
  || ENABLE_FEATURE_SEAMLESS_XZ \
  || ENABLE_FEATURE_SEAMLESS_LZMA \
+ || ENABLE_FEATURE_SEAMLESS_LZ \
  || ENABLE_FEATURE_SEAMLESS_BZ2 \
  || ENABLE_FEATURE_SEAMLESS_GZ \
  || ENABLE_FEATURE_SEAMLESS_Z)
 
 #if SEAMLESS_COMPRESSION
-/* Autodetects gzip/bzip2 formats. fd may be in the middle of the file! */
+/* Autodetects gzip/bzip2/lzip formats. fd may be in the middle of the file! */
 extern int setup_unzip_on_fd(int fd, int fail_if_not_compressed) FAST_FUNC;
 /* Autodetects .gz etc */
 extern int open_zipped(const char *fname, int fail_if_not_compressed) FAST_FUNC;
@@ -1207,6 +1208,7 @@ int ls_main(int argc, char **argv) IF_LS(MAIN_EXTERNALLY_VISIBLE);
 /* Don't need IF_xxx() guard for these */
 int gunzip_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 int bunzip2_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int lunzip_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 
 #if ENABLE_ROUTE
 void bb_displayroutes(int noresolve, int netstatfmt) FAST_FUNC;
