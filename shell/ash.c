@@ -15,6 +15,140 @@
  *
  * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
+//config:config ASH
+//config:	bool "ash"
+//config:	default y
+//config:	depends on !NOMMU
+//config:	help
+//config:	  Tha 'ash' shell adds about 60k in the default configuration and is
+//config:	  the most complete and most pedantically correct shell included with
+//config:	  busybox. This shell is actually a derivative of the Debian 'dash'
+//config:	  shell (by Herbert Xu), which was created by porting the 'ash' shell
+//config:	  (written by Kenneth Almquist) from NetBSD.
+//config:
+//config:config ASH_OPTIMIZE_FOR_SIZE
+//config:	bool "Optimize for size instead of speed"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Compile ash for reduced size at the price of speed.
+//config:
+//config:config ASH_INTERNAL_GLOB
+//config:	bool "Use internal glob() implementation"
+//config:	default y	# Y is bigger, but because of uclibc glob() bug, let Y be default for now
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Do not use glob() function from libc, use internal implementation.
+//config:	  Use this if you are getting "glob.h: No such file or directory"
+//config:	  or similar build errors.
+//config:
+//config:config ASH_RANDOM_SUPPORT
+//config:	bool "Pseudorandom generator and $RANDOM variable"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable pseudorandom generator and dynamic variable "$RANDOM".
+//config:	  Each read of "$RANDOM" will generate a new pseudorandom value.
+//config:	  You can reset the generator by using a specified start value.
+//config:	  After "unset RANDOM" the generator will switch off and this
+//config:	  variable will no longer have special treatment.
+//config:
+//config:config ASH_EXPAND_PRMT
+//config:	bool "Expand prompt string"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  "PS#" may contain volatile content, such as backquote commands.
+//config:	  This option recreates the prompt string from the environment
+//config:	  variable each time it is displayed.
+//config:
+//config:config ASH_BASH_COMPAT
+//config:	bool "bash-compatible extensions"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable bash-compatible extensions.
+//config:
+//config:config ASH_IDLE_TIMEOUT
+//config:	bool "Idle timeout variable"
+//config:	default n
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enables bash-like auto-logout after $TMOUT seconds of idle time.
+//config:
+//config:config ASH_JOB_CONTROL
+//config:	bool "Job control"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable job control in the ash shell.
+//config:
+//config:config ASH_ALIAS
+//config:	bool "Alias support"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable alias support in the ash shell.
+//config:
+//config:config ASH_GETOPTS
+//config:	bool "Builtin getopt to parse positional parameters"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable support for getopts builtin in ash.
+//config:
+//config:config ASH_BUILTIN_ECHO
+//config:	bool "Builtin version of 'echo'"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable support for echo builtin in ash.
+//config:
+//config:config ASH_BUILTIN_PRINTF
+//config:	bool "Builtin version of 'printf'"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable support for printf builtin in ash.
+//config:
+//config:config ASH_BUILTIN_TEST
+//config:	bool "Builtin version of 'test'"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable support for test builtin in ash.
+//config:
+//config:config ASH_HELP
+//config:	bool "help builtin"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable help builtin in ash.
+//config:
+//config:config ASH_CMDCMD
+//config:	bool "'command' command to override shell builtins"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable support for the ash 'command' builtin, which allows
+//config:	  you to run the specified command with the specified arguments,
+//config:	  even when there is an ash builtin command with the same name.
+//config:
+//config:config ASH_MAIL
+//config:	bool "Check for new mail on interactive shells"
+//config:	default y
+//config:	depends on ASH || SH_IS_ASH || BASH_IS_ASH
+//config:	help
+//config:	  Enable "check for new mail" function in the ash shell.
+
+//applet:IF_ASH(APPLET(ash, BB_DIR_BIN, BB_SUID_DROP))
+//applet:IF_SH_IS_ASH(APPLET_ODDNAME(sh, ash, BB_DIR_BIN, BB_SUID_DROP, ash))
+//applet:IF_BASH_IS_ASH(APPLET_ODDNAME(bash, ash, BB_DIR_BIN, BB_SUID_DROP, ash))
+
+//kbuild:lib-$(CONFIG_ASH) += ash.o ash_ptr_hack.o shell_common.o
+//kbuild:lib-$(CONFIG_SH_IS_ASH) += ash.o ash_ptr_hack.o shell_common.o
+//kbuild:lib-$(CONFIG_BASH_IS_ASH) += ash.o ash_ptr_hack.o shell_common.o
+//kbuild:lib-$(CONFIG_ASH_RANDOM_SUPPORT) += random.o
 
 /*
  * The following should be set to reflect the type of system you have:
@@ -51,13 +185,24 @@
 # define ENABLE_ASH_INTERNAL_GLOB 1
 #endif
 
+#if !ENABLE_ASH_INTERNAL_GLOB && defined(__UCLIBC__)
+# error uClibc glob() is buggy, use ASH_INTERNAL_GLOB.
+# error The bug is: for "$PWD"/<pattern> ash will escape e.g. dashes in "$PWD"
+# error with backslash, even ones which do not need to be: "/a-b" -> "/a\-b"
+# error glob() should unbackslash them and match. uClibc does not unbackslash,
+# error fails to match dirname, subsequently not expanding <pattern> in it.
+// Testcase:
+// if (glob("/etc/polkit\\-1", 0, NULL, &pglob)) - this returns 0 on uclibc, no bug
+// if (glob("/etc/polkit\\-1/*", 0, NULL, &pglob)) printf("uclibc bug!\n");
+#endif
+
 #if !ENABLE_ASH_INTERNAL_GLOB
 # include <glob.h>
 #endif
 
 #include "unicode.h"
 #include "shell_common.h"
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 # include "math.h"
 #endif
 #if ENABLE_ASH_RANDOM_SUPPORT
@@ -85,140 +230,6 @@
 #if !BB_MMU
 # error "Do not even bother, ash will not run on NOMMU machine"
 #endif
-
-//config:config ASH
-//config:	bool "ash"
-//config:	default y
-//config:	depends on !NOMMU
-//config:	help
-//config:	  Tha 'ash' shell adds about 60k in the default configuration and is
-//config:	  the most complete and most pedantically correct shell included with
-//config:	  busybox. This shell is actually a derivative of the Debian 'dash'
-//config:	  shell (by Herbert Xu), which was created by porting the 'ash' shell
-//config:	  (written by Kenneth Almquist) from NetBSD.
-//config:
-//config:config ASH_OPTIMIZE_FOR_SIZE
-//config:	bool "Optimize for size instead of speed"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Compile ash for reduced size at the price of speed.
-//config:
-//config:config ASH_INTERNAL_GLOB
-//config:	bool "Use internal glob() implementation"
-//config:	default n
-//config:	depends on ASH
-//config:	help
-//config:	  Do not use glob() function from libc, use internal implementation.
-//config:	  Use this if you are getting "glob.h: No such file or directory"
-//config:	  or similar build errors.
-//config:
-//config:config ASH_RANDOM_SUPPORT
-//config:	bool "Pseudorandom generator and $RANDOM variable"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable pseudorandom generator and dynamic variable "$RANDOM".
-//config:	  Each read of "$RANDOM" will generate a new pseudorandom value.
-//config:	  You can reset the generator by using a specified start value.
-//config:	  After "unset RANDOM" the generator will switch off and this
-//config:	  variable will no longer have special treatment.
-//config:
-//config:config ASH_EXPAND_PRMT
-//config:	bool "Expand prompt string"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  "PS#" may contain volatile content, such as backquote commands.
-//config:	  This option recreates the prompt string from the environment
-//config:	  variable each time it is displayed.
-//config:
-//config:config ASH_BASH_COMPAT
-//config:	bool "bash-compatible extensions"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable bash-compatible extensions.
-//config:
-//config:config ASH_IDLE_TIMEOUT
-//config:	bool "Idle timeout variable"
-//config:	default n
-//config:	depends on ASH
-//config:	help
-//config:	  Enables bash-like auto-logout after $TMOUT seconds of idle time.
-//config:
-//config:config ASH_JOB_CONTROL
-//config:	bool "Job control"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable job control in the ash shell.
-//config:
-//config:config ASH_ALIAS
-//config:	bool "Alias support"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable alias support in the ash shell.
-//config:
-//config:config ASH_GETOPTS
-//config:	bool "Builtin getopt to parse positional parameters"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable support for getopts builtin in ash.
-//config:
-//config:config ASH_BUILTIN_ECHO
-//config:	bool "Builtin version of 'echo'"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable support for echo builtin in ash.
-//config:
-//config:config ASH_BUILTIN_PRINTF
-//config:	bool "Builtin version of 'printf'"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable support for printf builtin in ash.
-//config:
-//config:config ASH_BUILTIN_TEST
-//config:	bool "Builtin version of 'test'"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable support for test builtin in ash.
-//config:
-//config:config ASH_HELP
-//config:	bool "help builtin"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable help builtin in ash.
-//config:
-//config:config ASH_CMDCMD
-//config:	bool "'command' command to override shell builtins"
-//config:	default y
-//config:	depends on ASH
-//config:	help
-//config:	  Enable support for the ash 'command' builtin, which allows
-//config:	  you to run the specified command with the specified arguments,
-//config:	  even when there is an ash builtin command with the same name.
-//config:
-//config:config ASH_MAIL
-//config:	bool "Check for new mail on interactive shells"
-//config:	default n
-//config:	depends on ASH
-//config:	help
-//config:	  Enable "check for new mail" function in the ash shell.
-//config:
-
-//applet:IF_ASH(APPLET(ash, BB_DIR_BIN, BB_SUID_DROP))
-//applet:IF_FEATURE_SH_IS_ASH(APPLET_ODDNAME(sh, ash, BB_DIR_BIN, BB_SUID_DROP, sh))
-//applet:IF_FEATURE_BASH_IS_ASH(APPLET_ODDNAME(bash, ash, BB_DIR_BIN, BB_SUID_DROP, bash))
-
-//kbuild:lib-$(CONFIG_ASH) += ash.o ash_ptr_hack.o shell_common.o
-//kbuild:lib-$(CONFIG_ASH_RANDOM_SUPPORT) += random.o
 
 
 /* ============ Hash table sizes. Configurable. */
@@ -2135,6 +2146,7 @@ lookupvar(const char *name)
 	return NULL;
 }
 
+#if ENABLE_UNICODE_SUPPORT
 static void
 reinit_unicode_for_ash(void)
 {
@@ -2151,6 +2163,9 @@ reinit_unicode_for_ash(void)
 		reinit_unicode(s);
 	}
 }
+#else
+# define reinit_unicode_for_ash() ((void)0)
+#endif
 
 /*
  * Search the environment of a builtin command.
@@ -2732,7 +2747,7 @@ pwdcmd(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 
 #define USE_SIT_FUNCTION ENABLE_ASH_OPTIMIZE_FOR_SIZE
 
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 # define SIT_ITEM(a,b,c,d) (a | (b << 4) | (c << 8) | (d << 12))
 #else
 # define SIT_ITEM(a,b,c,d) (a | (b << 4) | (c << 8))
@@ -3120,7 +3135,7 @@ static const uint8_t syntax_index_table[] ALIGN1 = {
 	({ \
 		if ((c) < 0 || (c) > (PEOF + ENABLE_ASH_ALIAS)) \
 			bb_error_msg_and_die("line:%d c:%d", __LINE__, (c)); \
-		if ((syntax) < 0 || (syntax) > (2 + ENABLE_SH_MATH_SUPPORT)) \
+		if ((syntax) < 0 || (syntax) > (2 + ENABLE_FEATURE_SH_MATH)) \
 			bb_error_msg_and_die("line:%d c:%d", __LINE__, (c)); \
 		((S_I_T[syntax_index_table[c]] >> ((syntax)*4)) & 0xf); \
 	})
@@ -4478,7 +4493,7 @@ cmdputs(const char *s)
 		case CTLBACKQ:
 			str = "$(...)";
 			goto dostr;
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 		case CTLARI:
 			str = "$((";
 			goto dostr;
@@ -5538,7 +5553,7 @@ redirectsafe(union node *redir, int flags)
  * We have to deal with backquotes, shell variables, and file metacharacters.
  */
 
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 static arith_t
 ash_arith(const char *s)
 {
@@ -5626,7 +5641,7 @@ static struct arglist exparg;
 /*
  * Our own itoa().
  */
-#if !ENABLE_SH_MATH_SUPPORT
+#if !ENABLE_FEATURE_SH_MATH
 /* cvtnum() is used even if math support is off (to prepare $? values and such) */
 typedef long arith_t;
 # define ARITH_FMT "%ld"
@@ -6139,7 +6154,7 @@ expbackq(union node *cmd, int flag)
 		stackblock() + startloc));
 }
 
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 /*
  * Expand arithmetic expression.  Backup to start of expression,
  * evaluate, place result in (backed up) result, adjust string position.
@@ -6221,7 +6236,7 @@ argstr(char *p, int flags, struct strlist *var_str_list)
 		CTLESC,
 		CTLVAR,
 		CTLBACKQ,
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 		CTLENDARI,
 #endif
 		'\0'
@@ -6257,7 +6272,7 @@ argstr(char *p, int flags, struct strlist *var_str_list)
 		c = p[length];
 		if (c) {
 			if (!(c & 0x80)
-			IF_SH_MATH_SUPPORT(|| c == CTLENDARI)
+			IF_FEATURE_SH_MATH(|| c == CTLENDARI)
 			) {
 				/* c == '=' || c == ':' || c == CTLENDARI */
 				length++;
@@ -6337,7 +6352,7 @@ argstr(char *p, int flags, struct strlist *var_str_list)
 			expbackq(argbackq->n, flags | inquotes);
 			argbackq = argbackq->next;
 			goto start;
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 		case CTLENDARI:
 			p--;
 			expari(flags | inquotes);
@@ -9256,7 +9271,7 @@ static int helpcmd(int, char **) FAST_FUNC;
 #if MAX_HISTORY
 static int historycmd(int, char **) FAST_FUNC;
 #endif
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 static int letcmd(int, char **) FAST_FUNC;
 #endif
 static int readcmd(int, char **) FAST_FUNC;
@@ -9336,7 +9351,7 @@ static const struct builtincmd builtintab[] = {
 	{ BUILTIN_REGULAR       "jobs"    , jobscmd    },
 	{ BUILTIN_REGULAR       "kill"    , killcmd    },
 #endif
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 	{ BUILTIN_NOSPEC        "let"     , letcmd     },
 #endif
 	{ BUILTIN_ASSIGN        "local"   , localcmd   },
@@ -11385,13 +11400,13 @@ readtoken1(int c, int syntax, char *eofmark, int striptabs)
 	smallint quotef;
 	smallint dblquote;
 	smallint oldstyle;
-	IF_SH_MATH_SUPPORT(smallint prevsyntax;) /* syntax before arithmetic */
+	IF_FEATURE_SH_MATH(smallint prevsyntax;) /* syntax before arithmetic */
 #if ENABLE_ASH_EXPAND_PRMT
 	smallint pssyntax;   /* we are expanding a prompt string */
 #endif
 	int varnest;         /* levels of variables expansion */
-	IF_SH_MATH_SUPPORT(int arinest;)    /* levels of arithmetic expansion */
-	IF_SH_MATH_SUPPORT(int parenlevel;) /* levels of parens in arithmetic */
+	IF_FEATURE_SH_MATH(int arinest;)    /* levels of arithmetic expansion */
+	IF_FEATURE_SH_MATH(int parenlevel;) /* levels of parens in arithmetic */
 	int dqvarnest;       /* levels of variables expansion within double quotes */
 
 	IF_ASH_BASH_COMPAT(smallint bash_dollar_squote = 0;)
@@ -11399,7 +11414,7 @@ readtoken1(int c, int syntax, char *eofmark, int striptabs)
 	startlinno = g_parsefile->linno;
 	bqlist = NULL;
 	quotef = 0;
-	IF_SH_MATH_SUPPORT(prevsyntax = 0;)
+	IF_FEATURE_SH_MATH(prevsyntax = 0;)
 #if ENABLE_ASH_EXPAND_PRMT
 	pssyntax = (syntax == PSSYNTAX);
 	if (pssyntax)
@@ -11407,8 +11422,8 @@ readtoken1(int c, int syntax, char *eofmark, int striptabs)
 #endif
 	dblquote = (syntax == DQSYNTAX);
 	varnest = 0;
-	IF_SH_MATH_SUPPORT(arinest = 0;)
-	IF_SH_MATH_SUPPORT(parenlevel = 0;)
+	IF_FEATURE_SH_MATH(arinest = 0;)
+	IF_FEATURE_SH_MATH(parenlevel = 0;)
 	dqvarnest = 0;
 
 	STARTSTACKSTR(out);
@@ -11515,7 +11530,7 @@ readtoken1(int c, int syntax, char *eofmark, int striptabs)
 			}
 			USTPUTC(c, out);
 			break;
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 		case CLP:       /* '(' in arithmetic */
 			parenlevel++;
 			USTPUTC(c, out);
@@ -11566,7 +11581,7 @@ readtoken1(int c, int syntax, char *eofmark, int striptabs)
 	} /* for (;;) */
  endword:
 
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 	if (syntax == ARISYNTAX)
 		raise_error_syntax("missing '))'");
 #endif
@@ -11745,7 +11760,7 @@ parsesub: {
 	} else if (c == '(') {
 		/* $(command) or $((arith)) */
 		if (pgetc_eatbnl() == '(') {
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 			PARSEARITH();
 #else
 			raise_error_syntax("you disabled math support for $((arith)) syntax");
@@ -12000,7 +12015,7 @@ parsebackq: {
 	goto parsebackq_newreturn;
 }
 
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 /*
  * Parse an arithmetic expansion (indicate start of one and set state)
  */
@@ -13037,7 +13052,7 @@ timescmd(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 	return 0;
 }
 
-#if ENABLE_SH_MATH_SUPPORT
+#if ENABLE_FEATURE_SH_MATH
 /*
  * The let builtin. Partially stolen from GNU Bash, the Bourne Again SHell.
  * Copyright (C) 1987, 1989, 1991 Free Software Foundation, Inc.
@@ -13291,15 +13306,6 @@ init(void)
 //usage:	"[-/+OPTIONS] [-/+o OPT]... [-c 'SCRIPT' [ARG0 [ARGS]] / FILE [ARGS]]"
 //usage:#define ash_full_usage "\n\n"
 //usage:	"Unix shell interpreter"
-
-//usage:#if ENABLE_FEATURE_SH_IS_ASH
-//usage:# define sh_trivial_usage ash_trivial_usage
-//usage:# define sh_full_usage    ash_full_usage
-//usage:#endif
-//usage:#if ENABLE_FEATURE_BASH_IS_ASH
-//usage:# define bash_trivial_usage ash_trivial_usage
-//usage:# define bash_full_usage    ash_full_usage
-//usage:#endif
 
 /*
  * Process the shell command line arguments.
