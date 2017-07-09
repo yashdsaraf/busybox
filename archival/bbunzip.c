@@ -463,6 +463,36 @@ int bunzip2_main(int argc UNUSED_PARAM, char **argv)
 #endif
 
 
+//config:config LUNZIP
+//config:	bool "lunzip"
+//config:	default y
+//config:	help
+//config:	  lunzip is used to decompress archives created by lzip.
+//config:	  You can use the `-t' option to test the integrity of
+//config:	  an archive, without decompressing it.
+
+//applet:IF_LUNZIP(APPLET(lunzip, BB_DIR_USR_BIN, BB_SUID_DROP))
+//kbuild:lib-$(CONFIG_LUNZIP) += bbunzip.o
+
+//usage:#define lunzip_trivial_usage
+//usage:       "[-cft] [FILE]..."
+//usage:#define lunzip_full_usage "\n\n"
+//usage:       "Decompress FILEs (or stdin)\n"
+//usage:     "\n	-c	Write to stdout"
+//usage:     "\n	-f	Force"
+//usage:     "\n	-t	Test file integrity"
+#if ENABLE_LUNZIP
+int lunzip_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+int lunzip_main(int argc UNUSED_PARAM, char **argv)
+{
+	getopt32(argv, "cfvqdt");
+	argv += optind;
+
+	return bbunpack(argv, unpack_lz_stream, make_new_name_generic, "lz");
+}
+#endif
+
+
 /*
  * Small lzma deflate implementation.
  * Copyright (C) 2006  Aurelien Jacobs <aurel@gnuage.org>

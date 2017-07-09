@@ -9,6 +9,9 @@ if test "${0##*/}" = "gunzip.tests"; then
 elif test "${0##*/}" = "bunzip2.tests"; then
     unpack=bunzip2
     ext=bz2
+elif test "${0##*/}" = "lunzip.tests"; then
+    unpack=lunzip
+    ext=lz
 else
     echo "WTF? argv0='$0'"
     exit 1
@@ -33,6 +36,13 @@ hello_bz2() {
 $ECHO -ne "\x42\x5a\x68\x39\x31\x41\x59\x26\x53\x59\x5b\xb8\xe8\xa3\x00\x00"
 $ECHO -ne "\x01\x44\x00\x00\x10\x02\x44\xa0\x00\x30\xcd\x00\xc3\x46\x29\x97"
 $ECHO -ne "\x17\x72\x45\x38\x50\x90\x5b\xb8\xe8\xa3"
+}
+
+hello_lz() {
+# Lzipped "HELLO\n"
+$ECHO -ne "\x4c\x5a\x49\x50\x01\x0c\x00\x24\x11\x45\xcf\x72\xcd\x3d\x3a\xdf"
+$ECHO -ne "\xff\xff\xdd\x12\x00\x00\x6e\xd7\xac\xfd\x06\x00\x00\x00\x00\x00"
+$ECHO -ne "\x00\x00\x2a\x00\x00\x00\x00\x00\x00\x00"
 }
 
 # We had bunzip2 error on this .bz2 file (fixed in rev 22521)
@@ -529,6 +539,12 @@ prep; check "$unpack: stream unpack" "cat t1.$ext | ${bb}$unpack; echo \$?"
 
 expected="ok\n"
 prep; check "$unpack: delete src" "${bb}$unpack t2.$ext; test ! -f t2.$ext && echo ok"
+
+expected="ok\n"
+rm -f t1.*
+hello_$ext > t1.t$ext
+check "$unpack: replace .t$ext --> .tar" \
+"${bb}$unpack t1.t$ext && test -f t1.tar && test ! -f t1.t$ext && echo ok"
 
 )
 rm -rf testdir
