@@ -1,8 +1,8 @@
 VERSION = 1
 PATCHLEVEL = 28
 SUBLEVEL = 0
-EXTRAVERSION =
-NAME = Unnamed
+EXTRAVERSION = .YDS
+NAME = YashdSaraf
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
