@@ -7423,12 +7423,8 @@ static NOINLINE void pseudo_exec_argv(nommu_save_t *nommu_save,
 		if (a >= 0) {
 # if BB_MMU /* see above why on NOMMU it is not allowed */
 			if (APPLET_IS_NOEXEC(a)) {
-				/* Do not leak open fds from opened script files etc.
-				 * Testcase: interactive "ls -l /proc/self/fd"
-				 * should not show tty fd open.
-				 */
-				close_saved_fds_and_FILE_fds();
-//FIXME: should also close saved redir fds
+				/* Do not leak open fds from opened script files etc */
+				close_all_FILE_list();
 				/* Without this, "rm -i FILE" can't be ^C'ed: */
 				switch_off_special_sigs(G.special_sig_mask);
 				debug_printf_exec("running applet '%s'\n", argv[0]);
