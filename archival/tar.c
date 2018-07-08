@@ -43,7 +43,7 @@
 //config:config FEATURE_TAR_AUTODETECT
 //config:	bool "Autodetect compressed tarballs"
 //config:	default y
-//config:	depends on TAR && (FEATURE_SEAMLESS_Z || FEATURE_SEAMLESS_GZ || FEATURE_SEAMLESS_BZ2 || FEATURE_SEAMLESS_LZMA || FEATURE_SEAMLESS_XZ)
+//config:	depends on TAR && (FEATURE_SEAMLESS_Z || FEATURE_SEAMLESS_GZ || FEATURE_SEAMLESS_BZ2 || FEATURE_SEAMLESS_LZ || FEATURE_SEAMLESS_LZMA || FEATURE_SEAMLESS_XZ)
 //config:	help
 //config:	With this option tar can automatically detect compressed
 //config:	tarballs. Currently it works only on files (not pipes etc).
@@ -756,6 +756,7 @@ static llist_t *append_file_list_to_list(llist_t *list)
 //usage:	IF_FEATURE_SEAMLESS_GZ("z")
 //usage:	IF_FEATURE_SEAMLESS_XZ("J")
 //usage:	IF_FEATURE_SEAMLESS_BZ2("j")
+//usage:	IF_FEATURE_SEAMLESS_LZ("y")
 //usage:	IF_FEATURE_SEAMLESS_LZMA("a")
 //usage:	IF_FEATURE_TAR_CREATE("h")
 //usage:	IF_FEATURE_TAR_NOPRESERVE_TIME("m")
@@ -795,6 +796,9 @@ static llist_t *append_file_list_to_list(llist_t *list)
 //usage:	IF_FEATURE_SEAMLESS_BZ2(
 //usage:     "\n	-j	(De)compress using bzip2"
 //usage:	)
+//usage:	IF_FEATURE_SEAMLESS_LZ(
+//usage:     "\n	-y	(De)compress using lzip"
+//usage:	)
 //usage:	IF_FEATURE_SEAMLESS_LZMA(
 //usage:     "\n	-a	(De)compress using lzma"
 //usage:	)
@@ -832,6 +836,7 @@ enum {
 	IF_FEATURE_TAR_FROM(     OPTBIT_EXCLUDE_FROM,)
 	IF_FEATURE_SEAMLESS_GZ(  OPTBIT_GZIP        ,)
 	IF_FEATURE_SEAMLESS_XZ(  OPTBIT_XZ          ,) // 16th bit
+	IF_FEATURE_SEAMLESS_LZ(  OPTBIT_LZIP        ,)
 	IF_FEATURE_SEAMLESS_Z(   OPTBIT_COMPRESS    ,)
 	IF_FEATURE_TAR_NOPRESERVE_TIME(OPTBIT_NOPRESERVE_TIME,)
 #if ENABLE_FEATURE_TAR_LONG_OPTIONS
@@ -859,6 +864,7 @@ enum {
 	OPT_EXCLUDE_FROM = IF_FEATURE_TAR_FROM(     (1 << OPTBIT_EXCLUDE_FROM)) + 0, // X
 	OPT_GZIP         = IF_FEATURE_SEAMLESS_GZ(  (1 << OPTBIT_GZIP        )) + 0, // z
 	OPT_XZ           = IF_FEATURE_SEAMLESS_XZ(  (1 << OPTBIT_XZ          )) + 0, // J
+	OPT_LZIP         = IF_FEATURE_SEAMLESS_LZ(  (1 << OPTBIT_LZIP        )) + 0, // y
 	OPT_COMPRESS     = IF_FEATURE_SEAMLESS_Z(   (1 << OPTBIT_COMPRESS    )) + 0, // Z
 	OPT_NOPRESERVE_TIME  = IF_FEATURE_TAR_NOPRESERVE_TIME((1 << OPTBIT_NOPRESERVE_TIME)) + 0, // m
 	OPT_STRIP_COMPONENTS = IF_FEATURE_TAR_LONG_OPTIONS((1 << OPTBIT_STRIP_COMPONENTS)) + 0, // strip-components
@@ -868,7 +874,7 @@ enum {
 	OPT_NOPRESERVE_PERM  = IF_FEATURE_TAR_LONG_OPTIONS((1 << OPTBIT_NOPRESERVE_PERM)) + 0, // no-same-permissions
 	OPT_OVERWRITE        = IF_FEATURE_TAR_LONG_OPTIONS((1 << OPTBIT_OVERWRITE      )) + 0, // overwrite
 
-	OPT_ANY_COMPRESS = (OPT_BZIP2 | OPT_LZMA | OPT_GZIP | OPT_XZ | OPT_COMPRESS),
+	OPT_ANY_COMPRESS = (OPT_BZIP2 | OPT_LZMA | OPT_GZIP | OPT_XZ | OPT_LZIP | OPT_COMPRESS),
 };
 #if ENABLE_FEATURE_TAR_LONG_OPTIONS
 static const char tar_longopts[] ALIGN1 =
@@ -900,6 +906,9 @@ static const char tar_longopts[] ALIGN1 =
 # endif
 # if ENABLE_FEATURE_SEAMLESS_GZ
 	"gzip\0"                No_argument       "z"
+# endif
+# if ENABLE_FEATURE_SEAMLESS_LZ
+	"lzip\0"                No_argument       "y"
 # endif
 # if ENABLE_FEATURE_SEAMLESS_XZ
 	"xz\0"                  No_argument       "J"
@@ -1003,6 +1012,7 @@ int tar_main(int argc UNUSED_PARAM, char **argv)
 		IF_FEATURE_TAR_FROM(     "T:*X:*")
 		IF_FEATURE_SEAMLESS_GZ(  "z"     )
 		IF_FEATURE_SEAMLESS_XZ(  "J"     )
+		IF_FEATURE_SEAMLESS_LZ(  "y"     )
 		IF_FEATURE_SEAMLESS_Z(   "Z"     )
 		IF_FEATURE_TAR_NOPRESERVE_TIME("m")
 		IF_FEATURE_TAR_LONG_OPTIONS("\xf9:") // --strip-components
@@ -1052,6 +1062,7 @@ int tar_main(int argc UNUSED_PARAM, char **argv)
 	showopt(OPT_EXCLUDE_FROM    );
 	showopt(OPT_GZIP            );
 	showopt(OPT_XZ              );
+	showopt(OPT_LZIP            );
 	showopt(OPT_COMPRESS        );
 	showopt(OPT_NOPRESERVE_TIME );
 	showopt(OPT_STRIP_COMPONENTS);
@@ -1184,6 +1195,8 @@ int tar_main(int argc UNUSED_PARAM, char **argv)
 			zipMode = "gzip";
 		if (opt & OPT_BZIP2)
 			zipMode = "bzip2";
+		if (opt & OPT_LZIP)
+			zipMode = "lzip";
 		if (opt & OPT_LZMA)
 			zipMode = "lzma";
 		if (opt & OPT_XZ)
@@ -1219,6 +1232,10 @@ int tar_main(int argc UNUSED_PARAM, char **argv)
 		if (opt & OPT_BZIP2) {
 			USE_FOR_MMU(IF_FEATURE_SEAMLESS_BZ2(xformer = unpack_bz2_stream;))
 			USE_FOR_NOMMU(xformer_prog = "bunzip2";)
+		}
+		if (opt & OPT_LZIP) {
+			USE_FOR_MMU(IF_FEATURE_SEAMLESS_LZ(xformer = unpack_lz_stream;))
+			USE_FOR_NOMMU(xformer_prog = "lunzip";)
 		}
 		if (opt & OPT_LZMA) {
 			USE_FOR_MMU(IF_FEATURE_SEAMLESS_LZMA(xformer = unpack_lzma_stream;))

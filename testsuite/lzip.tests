@@ -1,0 +1,58 @@
+#!/bin/sh
+# Copyright (C) 2012-2016 Antonio Diaz Diaz.
+# Licensed under GPLv2 or later, see file LICENSE in this source tree.
+
+. ./testing.sh
+
+rm -rf lzip.testdir 2>/dev/null
+mkdir lzip.testdir
+
+# Lzipped "a"
+$ECHO -ne "\x4c\x5a\x49\x50\x01\x0c\x00\x30\xc1\xfb\xff\xff\xff\xe0\x00\x00\
+\x00\x43\xbe\xb7\xe8\x01\x00\x00\x00\x00\x00\x00\x00\x25\x00\x00\
+\x00\x00\x00\x00\x00" > lzip.testdir/a.lz
+
+# Lzipped zero-length file
+$ECHO -ne "\x4c\x5a\x49\x50\x01\x0c\x00\x83\xff\xfb\xff\xff\xc0\x00\x00\x00\
+\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x24\x00\x00\x00\
+\x00\x00\x00\x00" > lzip.testdir/zero.lz
+
+
+# testing "test name" "commands" "expected result" "file input" "stdin"
+
+testing "lzip reads from standard input" \
+"busybox lzip | cmp lzip.testdir/a.lz -" "" "" "a"
+
+testing "lzip accepts single minus" \
+"busybox lzip - | cmp lzip.testdir/a.lz -" "" "" "a"
+
+testing "lzip compresses a zero-length file" \
+"> zero ; busybox lzip -c zero | cmp lzip.testdir/zero.lz -" "" "" ""
+
+testing "lzip replaces original file" \
+"$ECHO foo > lzip.testdir/foo
+rm -f lzip.testdir/foo.lz 2>/dev/null
+busybox lzip lzip.testdir/foo
+test -f lzip.testdir/foo.lz && test ! -f lzip.testdir/foo && echo ok" \
+"ok\n" "" ""
+
+testing "lzip replaces multiple files" \
+"$ECHO foo > lzip.testdir/foo
+$ECHO bar > lzip.testdir/bar
+rm -f lzip.testdir/foo.lz 2>/dev/null
+rm -f lzip.testdir/bar.lz 2>/dev/null
+busybox lzip lzip.testdir/foo lzip.testdir/bar
+test -f lzip.testdir/foo.lz && test ! -f lzip.testdir/foo && echo ok1
+test -f lzip.testdir/bar.lz && test ! -f lzip.testdir/bar && echo ok2" \
+"ok1\nok2\n" "" ""
+
+testing "lzip -c does not remove original file" \
+"$ECHO foo > lzip.testdir/foo
+busybox lzip -c lzip.testdir/foo >/dev/null
+test -f lzip.testdir/foo && echo ok" "ok\n" "" ""
+
+
+# Clean up
+rm -rf lzip.testdir 2>/dev/null
+
+exit $FAILCOUNT
